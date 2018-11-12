@@ -7,13 +7,12 @@ using BenchmarkDotNet.Attributes;
 using GoodPractices.Benchmark.Lib.Http;
 using Microsoft.IO;
 
-namespace GoodPractices.Benchmark
+namespace GoodPractices.Benchmark.Test.Http
 {
-  public class HttpBufferedPipelineTests
+  public class HttpPipelineTests
   {
     private static HttpClient cli;
     const int length = 1;
-    private readonly static RecyclableMemoryStreamManager manager = new RecyclableMemoryStreamManager();
 
 
     [GlobalSetup]
@@ -25,7 +24,7 @@ namespace GoodPractices.Benchmark
         MaxConnectionsPerServer = 1000,
         AutomaticDecompression = System.Net.DecompressionMethods.None
       };
-      cli = HttpClientFactory.Create(h, new BufferingHandler(manager), new DecompressionHandler());
+      cli = HttpClientFactory.Create(h, new DecompressionHandler());
     }
 
 
@@ -52,7 +51,7 @@ namespace GoodPractices.Benchmark
     }
 
     [Benchmark]
-    public async Task<long> Shared_HttpClient_ReadAsStreamAsync_ResponseHeadersRead()
+    public async Task<long> HttpClient_ReadAsStreamAsync()
     {
       long bytes = 0;
       for (int i = 0; i < length; i++)
@@ -62,12 +61,48 @@ namespace GoodPractices.Benchmark
           using (var stream = await response.Content.ReadAsStreamAsync())
           {
             bytes += Read(stream);
+          }
+        }
+      }
+      return bytes;
+    }
+
+
+    [Benchmark]
+    public async Task<long> HttpClient_ReadAsStreamAsync_MultipleReads()
+    {
+      long bytes = 0;
+      for (int i = 0; i < length; i++)
+      {
+        using (var response = cli.GetAsync("http://localhost:8080/medium", HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult())
+        {
+          await response.Content.LoadIntoBufferAsync();
+          using (var stream = await response.Content.ReadAsStreamAsync())
+          {
+            bytes += Read(stream);
             stream.Position = 0;
             bytes += Read(stream);
           }
-          if (response.RequestMessage.Properties.TryGetValue("buffer", out var ms))
+        }
+      }
+      return bytes;
+    }
+
+
+    [Benchmark]
+    public async Task<long> HttpClient_ReadAsStreamAsync_MultipleReads_Gzipped()
+    {
+      long bytes = 0;
+      for (int i = 0; i < length; i++)
+      {
+        using (var response = cli.GetAsync("http://localhost:8080/medium_gz", HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult())
+        {
+          await response.Content.LoadIntoBufferAsync();
+          using (var stream = await response.Content.ReadAsStreamAsync())
           {
-            ((MemoryStream)ms).Dispose();
+            bytes += Read(stream);
+            stream.Position = 0;
+            bytes += Read(stream);
           }
         }
       }

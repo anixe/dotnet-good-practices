@@ -1,7 +1,7 @@
 using System.Text;
 using BenchmarkDotNet.Attributes;
 
-namespace GoodPractices.Benchmark
+namespace GoodPractices.Benchmark.Test.Strings
 {
   public class StringBuilderAppendTest
   {

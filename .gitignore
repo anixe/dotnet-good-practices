@@ -3,3 +3,4 @@
 GoodPractices.Benchmark/obj
 GoodPractices.Benchmark/bin
 GoodPractices.Benchmark/tmp
+GoodPractices.Benchmark/BenchmarkDotNet.Artifacts

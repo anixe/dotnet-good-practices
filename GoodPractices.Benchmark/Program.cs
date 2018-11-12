@@ -9,6 +9,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Running;
 using GoodPractices.Benchmark.Lib.Http;
+using GoodPractices.Benchmark.Test.Collections;
 
 namespace GoodPractices.Benchmark
 {

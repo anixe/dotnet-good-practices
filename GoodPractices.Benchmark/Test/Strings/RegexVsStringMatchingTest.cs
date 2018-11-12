@@ -2,7 +2,7 @@
 using GoodPractices.Benchmark.Lib.Match;
 using System.Text.RegularExpressions;
 
-namespace GoodPractices.Benchmark
+namespace GoodPractices.Benchmark.Test.Strings
 {
     public class RegexVsStringMatchingTest
     {

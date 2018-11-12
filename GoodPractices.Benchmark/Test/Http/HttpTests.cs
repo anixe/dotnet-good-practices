@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using GoodPractices.Benchmark.Lib.Http;
 
-namespace GoodPractices.Benchmark
+namespace GoodPractices.Benchmark.Test.Http
 {
   public class HttpTests
   {

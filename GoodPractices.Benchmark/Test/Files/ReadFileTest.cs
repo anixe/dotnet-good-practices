@@ -4,7 +4,7 @@ using System.IO.MemoryMappedFiles;
 using BenchmarkDotNet.Attributes;
 using GoodPractices.Benchmark.Lib.ReadFile;
 
-namespace GoodPractices.Benchmark
+namespace GoodPractices.Benchmark.Test.Files
 {
   public class ReadFileTest
   {

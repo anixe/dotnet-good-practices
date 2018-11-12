@@ -1,112 +1,39 @@
+### Purpose
+This repo keeps  
 
+### Tools
+[Anixe.IO] - internal library for fast operations
+[Microsoft.IO.RecyclableMemoryStream](https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream) - pooling for MemoryStream object
+[Microsoft.Extensions.ObjectPool](https://github.com/aspnet/Extensions/tree/master/src/ObjectPool) - pooling for objects 
+[BenchmarkDotNet](https://benchmarkdotnet.org/articles/overview.html) - multiplatform benchmark tool
+
+### Articles, Books
 http://mattwarren.org/2016/02/17/adventures-in-benchmarking-memory-allocations/
+http://mattwarren.org/2018/01/22/Resources-for-Learning-about-.NET-Internals/
+https://www.writinghighperf.net/
 
-Basic
+### Repo structure
 ```
-                                  Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
----------------------------------------- |----------:|----------:|----------:|-------:|----------:|
-                       Contact_2_Strings |  27.28 ns | 0.3210 ns | 0.3003 ns | 0.0178 |     112 B |
-                       Contact_2_Objects | 242.40 ns | 3.3588 ns | 3.1418 ns | 0.0267 |     168 B |
-                       Contact_5_Strings | 104.00 ns | 0.3728 ns | 0.3488 ns | 0.0432 |     272 B |
-                       Contact_6_Objects | 346.47 ns | 2.2163 ns | 1.9647 ns | 0.0658 |     416 B |
-   Contact_6_Objects_Converted_To_String | 303.58 ns | 1.9592 ns | 1.8327 ns | 0.0467 |     296 B |
- Contact_3_3_Objects_Converted_To_String | 301.77 ns | 2.6010 ns | 2.3057 ns | 0.0529 |     336 B |
-```
-
-Preallocation
-```
-                                                Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
------------------------------------------------------- |----------:|----------:|----------:|-------:|----------:|
-                                     Contact_2_Strings | 140.47 ns | 1.1367 ns | 1.0632 ns | 0.0725 |     456 B |
-                     Contact_2_Strings_With_Initialize |  61.58 ns | 0.3874 ns | 0.3434 ns | 0.0495 |     312 B |
-                                     Contact_2_Objects | 588.03 ns | 1.9429 ns | 1.8174 ns | 0.0772 |     488 B |
-                     Contact_2_Objects_With_Initialize | 281.06 ns | 0.7949 ns | 0.7046 ns | 0.0467 |     296 B |
-                                     Contact_5_Strings | 233.18 ns | 1.4020 ns | 1.3114 ns | 0.1180 |     744 B |
-                      Contact_5_Strings_With_Initialie | 110.53 ns | 0.9180 ns | 0.8587 ns | 0.0838 |     528 B |
-                                     Contact_6_Objects | 393.96 ns | 0.9677 ns | 0.8081 ns | 0.0787 |     496 B |
-                     Contact_6_Objects_With_Initialize | 324.01 ns | 1.1170 ns | 0.9902 ns | 0.0758 |     480 B |
-                 Contact_6_Objects_Converted_To_String | 390.98 ns | 1.7742 ns | 1.5728 ns | 0.0901 |     568 B |
- Contact_6_Objects_Converted_To_String_With_Initialize | 308.20 ns | 1.0112 ns | 0.9458 ns | 0.0873 |     552 B |
+project
+│
+└───GoodPractices.Benchmark
+|   |  
+|   └───Examples // data files used by benchmarks: json, xml, ion, txt 
+|   └───Lib // utility code 
+|   └───Test // benchmark files 
+|       └───Collections  
+|       └───Files  
+|       └───Http  
+|       └───Misc  
+|       └───Strings  
 ```
 
-Rent
-```
+### How to add new benchmark
+- Add class with benchmark to proper namespace under GoodPractices.Benchmark/Test - if namespace doesn't exist yet just create new one. Alternatively you could keep file under GoodPractices.Benchmark/Test/Misc (discouraged)
 
-                               Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
-------------------------------------- |----------:|----------:|----------:|-------:|----------:|
-                     Append_2_Strings |  40.08 ns | 0.1206 ns | 0.1007 ns | 0.0178 |     112 B |
-                     Append_2_Objects | 254.07 ns | 2.0901 ns | 1.9551 ns | 0.0148 |      96 B |
-                     Append_6_Strings |  78.81 ns | 0.4790 ns | 0.4480 ns | 0.0317 |     200 B |
-                     Append_6_Objects | 278.81 ns | 1.5673 ns | 1.4660 ns | 0.0238 |     152 B |
- Append_6_Objects_Converted_To_String | 273.15 ns | 1.8794 ns | 1.6660 ns | 0.0353 |     224 B |
-```
+- Add/Update Summary.md in selected namespace
 
-Rent & CopyTo Reusable Buffer
+### How to run
 ```
-                               Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
-------------------------------------- |----------:|----------:|----------:|-------:|----------:|
-                     Append_2_Strings |  42.50 ns | 0.1945 ns | 0.1819 ns |      - |       0 B |
-                     Append_2_Objects | 247.10 ns | 0.7808 ns | 0.6921 ns |      - |       0 B |
-                     Append_6_Strings |  80.49 ns | 0.4190 ns | 0.3919 ns |      - |       0 B |
-                     Append_6_Objects | 286.08 ns | 0.8034 ns | 0.7515 ns |      - |       0 B |
- Append_6_Objects_Converted_To_String | 278.37 ns | 1.9551 ns | 1.6326 ns | 0.0110 |      72 B |
-```
-
-
-ReadFileTest
-```
-                                 Method |      Mean |     Error |    StdDev |     Gen 0 |   Gen 1 |  Allocated |
---------------------------------------- |----------:|----------:|----------:|----------:|--------:|-----------:|
-                  Use_Only_StreamReader |  9.586 ms | 0.0486 ms | 0.0431 ms | 1468.7500 | 15.6250 | 9093.75 KB |
- Use_MemoryMappedFile_And_Stream_Reader | 18.718 ms | 0.2006 ms | 0.1778 ms | 1468.7500 |       - | 9090.32 KB |
-                  Use_Custom_FastReader | 23.889 ms | 0.2138 ms | 0.2000 ms |         - |       - |    8.08 KB |
- ```
- 
- 
- Regex vs string matching test
- ```
-                                                   Method |      Mean |      Error |     StdDev |  Gen 0 | Allocated |
--------------------------------------------------------- |----------:|-----------:|-----------:|-------:|----------:|
-                             Regex_Pattern_Same_As_Input | 371.30 ns |  0.5025 ns |  0.4196 ns | 0.0329 |     104 B |
-                     CompiledRegex_Pattern_Same_As_Input | 319.20 ns |  1.1929 ns |  0.9961 ns |      - |       0 B |
-                Matcher_No_Storage_Pattern_Same_As_Input | 264.85 ns |  0.4867 ns |  0.4552 ns | 0.1116 |     352 B |
-                   Matcher_Storage_Pattern_Same_As_Input |  71.86 ns |  0.0691 ns |  0.0613 ns | 0.0304 |      96 B |
-                             Regex_Pattern_With_Wildcard | 294.92 ns |  0.1752 ns |  0.1553 ns | 0.0329 |     104 B |
-                     CompiledRegex_Pattern_With_Wildcard | 333.34 ns |  0.1931 ns |  0.1806 ns |      - |       0 B |
-                Matcher_No_Storage_Pattern_With_Wildcard | 219.13 ns |  0.2386 ns |  0.2232 ns | 0.1016 |     320 B |
-                   Matcher_Storage_Pattern_With_Wildcard |  67.76 ns |  0.0396 ns |  0.0331 ns | 0.0254 |      80 B |
-              Regex_Pattern_Has_More_Elements_Than_Input | 495.53 ns |  1.2283 ns |  1.1490 ns | 0.0324 |     104 B |
-      CompiledRegex_Pattern_Has_More_Elements_Than_Input | 245.91 ns |  0.2380 ns |  0.2227 ns |      - |       0 B |
- Matcher_No_Storage_Pattern_Has_More_Elements_Than_Input | 197.30 ns |  0.1790 ns |  0.1587 ns | 0.1245 |     392 B |
-    Matcher_Storage_Pattern_Has_More_Elements_Than_Input |  74.02 ns |  0.0609 ns |  0.0569 ns | 0.0330 |     104 B |
-                  Regex_Pattern_With_Wildcard_At_The_End | 305.47 ns |  0.1344 ns |  0.1123 ns | 0.0329 |     104 B |
-          CompiledRegex_Pattern_With_Wildcard_At_The_End | 355.19 ns |  0.3306 ns |  0.3092 ns |      - |       0 B |
-     Matcher_No_Storage_Pattern_With_Wildcard_At_The_End | 448.67 ns |  0.1412 ns |  0.1321 ns | 0.1268 |     400 B |
-        Matcher_Storage_Pattern_With_Wildcard_At_The_End |  71.40 ns |  1.4576 ns |  1.2921 ns | 0.0279 |      88 B |
-               Regex_Pattern_With_Wildcard_In_The_Middle | 512.29 ns | 10.1139 ns | 11.2416 ns | 0.0324 |     104 B |
-       CompiledRegex_Pattern_With_Wildcard_In_The_Middle | 640.40 ns |  5.4431 ns |  4.8252 ns |      - |       0 B |
-  Matcher_No_Storage_Pattern_With_Wildcard_In_The_Middle | 308.34 ns |  2.2723 ns |  2.0144 ns | 0.1345 |     424 B |
-     Matcher_Storage_Pattern_With_Wildcard_In_The_Middle |  74.48 ns |  0.1129 ns |  0.1057 ns | 0.0330 |     104 B |
-                                 Regex_Pattern_Uppercase | 477.53 ns |  1.5648 ns |  1.3871 ns | 0.0324 |     104 B |
-                         CompiledRegex_Pattern_Uppercase | 321.03 ns |  0.2113 ns |  0.1764 ns |      - |       0 B |
-                    Matcher_No_Storage_Pattern_Uppercase | 268.71 ns |  0.3062 ns |  0.2864 ns | 0.1116 |     352 B |
-                       Matcher_Storage_Pattern_Uppercase |  71.82 ns |  0.1074 ns |  0.1004 ns | 0.0304 |      96 B |
-```
-
-ReturnYieldVsReturnList
-```
-                     Method | NumberOfItems |        Mean |       Error |      StdDev | Gen 0/1k Op | Allocated Memory/Op |
---------------------------- |-------------- |------------:|------------:|------------:|------------:|--------------------:|
-                Return_List |             1 |    63.73 ns |   1.1566 ns |   1.0253 ns |      0.0508 |                80 B |
- Return_List_Known_Capacity |             1 |    47.68 ns |   0.6970 ns |   0.5820 ns |      0.0457 |                72 B |
-                      Yield |             1 |    35.02 ns |   0.7198 ns |   1.0323 ns |      0.0254 |                40 B |
-                Return_List |            10 |   221.10 ns |   2.5827 ns |   2.4159 ns |      0.1423 |               224 B |
- Return_List_Known_Capacity |            10 |   107.01 ns |   4.9694 ns |   5.5235 ns |      0.0660 |               104 B |
-                      Yield |            10 |   112.52 ns |   1.4678 ns |   1.3011 ns |      0.0254 |                40 B |
-                Return_List |           100 |  1,133.5 ns |    22.39 ns |    39.22 ns |      0.7572 |              1192 B |
- Return_List_Known_Capacity |           100 |    746.3 ns |    17.00 ns |    15.90 ns |      0.2937 |               464 B |
-                      Yield |           100 |    906.5 ns |    11.68 ns |    10.36 ns |      0.0248 |                40 B |
-                Return_List |          1000 | 8,251.92 ns | 136.2985 ns | 120.8250 ns |      5.3406 |              8432 B |
- Return_List_Known_Capacity |          1000 | 7,019.67 ns | 167.6531 ns | 193.0696 ns |      2.5711 |              4064 B |
-                      Yield |          1000 | 8,709.88 ns | 172.8103 ns | 177.4635 ns |      0.0153 |                40 B |
+dotnet run -c Release
 ```

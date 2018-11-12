@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 
-namespace GoodPractices.Benchmark
+namespace GoodPractices.Benchmark.Test.Collections
 {
   public class ReturnYieldVsReturnList
   {
