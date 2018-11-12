@@ -53,6 +53,8 @@ namespace GoodPractices.Benchmark
     private static void RunBenchmark(Type type, IConfig config)
     {
       BenchmarkRunner.Run(type, config);
+      Console.WriteLine("Press any key to back to menu");
+      Console.Read();
     }
 
     private static void RunBenchmark(Type[] types, IConfig config)
