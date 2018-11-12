@@ -14,7 +14,6 @@ namespace GoodPractices.Benchmark.Test.Collections
       return SumList(CreateList());
     }
 
-    
     [Benchmark]
     public int Return_List_Known_Capacity()
     {

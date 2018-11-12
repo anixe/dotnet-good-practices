@@ -1,7 +1,5 @@
-
-http://mattwarren.org/2016/02/17/adventures-in-benchmarking-memory-allocations/
-
-Basic
+### StringConcatTest 
+string concatenation benchmarks  
 ```
                                   Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
 ---------------------------------------- |----------:|----------:|----------:|-------:|----------:|
@@ -13,7 +11,10 @@ Basic
  Contact_3_3_Objects_Converted_To_String | 301.77 ns | 2.6010 ns | 2.3057 ns | 0.0529 |     336 B |
 ```
 
-Preallocation
+---
+
+### StringBuilderAppendTest
+string producing using StringBuilder. General tip is - if you can compute size of the final string upfront (it's just a sum of Length of every string that is a part of the result) it's best to initialize StringBuilder with the size.  
 ```
                                                 Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
 ------------------------------------------------------ |----------:|----------:|----------:|-------:|----------:|
@@ -29,7 +30,10 @@ Preallocation
  Contact_6_Objects_Converted_To_String_With_Initialize | 308.20 ns | 1.0112 ns | 0.9458 ns | 0.0873 |     552 B |
 ```
 
-Rent
+---
+
+### PooledStringBuilderAppendTest
+similar to StringBuilderAppendTest but this time StringBuilder instances are taken from the resuable pool. Crucial in this approach is to not forget to *RETURN* instance of StringBuilder back to pool. 
 ```
 
                                Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
@@ -40,8 +44,27 @@ Rent
                      Append_6_Objects | 278.81 ns | 1.5673 ns | 1.4660 ns | 0.0238 |     152 B |
  Append_6_Objects_Converted_To_String | 273.15 ns | 1.8794 ns | 1.6660 ns | 0.0353 |     224 B |
 ```
+---
 
-Rent & CopyTo Reusable Buffer
+### PooledStringBuilderCopyToTest ###
+similar to PooledStringBuilderAppendTest, but this time we're copying chars from StringBuilder to pooled array of chars. Again, it's important to back both StringBuilder and rent char array to the pool.
+Important thing to remember is that despite we have an array of let's say 1024 chars, in fact we can't assume all chars were written by our StringBuilder, so we must also have information of written chars.
+
+Example:
+``` c#
+var sb = Consts.StringBuilderPool.Get();
+var target = ArrayPool<char>.Shared.Rent(1024);
+
+sb.Append("20_char_string_here");
+sb.CopyTo(0, this.target, 0, sb.Length);
+
+// notice that at this point target has size of 1024 chars, but only chars from 0..sb.Length are interesting for us. The rest of them is essentially a garbage - it's possible that this particular array was already used a couple of times and there are some chars written there.
+// So if you need to rewrite these chars to another buffer, keep in mind you can't rewrite all the chars from the target (1024), but you need to remember number of written chars from StringBuilder instance.
+
+Consts.StringBuilderPool.Return(this.sb);
+ArrayPool<char>.Shared.Return(this.target);
+```
+
 ```
                                Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
 ------------------------------------- |----------:|----------:|----------:|-------:|----------:|
@@ -51,20 +74,12 @@ Rent & CopyTo Reusable Buffer
                      Append_6_Objects | 286.08 ns | 0.8034 ns | 0.7515 ns |      - |       0 B |
  Append_6_Objects_Converted_To_String | 278.37 ns | 1.9551 ns | 1.6326 ns | 0.0110 |      72 B |
 ```
+ 
+---
 
-
-ReadFileTest
+### RegexVsStringMatchingTest
+Comparison of different ways of telling whether string mathes our pattern. 
 ```
-                                 Method |      Mean |     Error |    StdDev |     Gen 0 |   Gen 1 |  Allocated |
---------------------------------------- |----------:|----------:|----------:|----------:|--------:|-----------:|
-                  Use_Only_StreamReader |  9.586 ms | 0.0486 ms | 0.0431 ms | 1468.7500 | 15.6250 | 9093.75 KB |
- Use_MemoryMappedFile_And_Stream_Reader | 18.718 ms | 0.2006 ms | 0.1778 ms | 1468.7500 |       - | 9090.32 KB |
-                  Use_Custom_FastReader | 23.889 ms | 0.2138 ms | 0.2000 ms |         - |       - |    8.08 KB |
- ```
- 
- 
- Regex vs string matching test
- ```
                                                    Method |      Mean |      Error |     StdDev |  Gen 0 | Allocated |
 -------------------------------------------------------- |----------:|-----------:|-----------:|-------:|----------:|
                              Regex_Pattern_Same_As_Input | 371.30 ns |  0.5025 ns |  0.4196 ns | 0.0329 |     104 B |
@@ -91,22 +106,4 @@ ReadFileTest
                          CompiledRegex_Pattern_Uppercase | 321.03 ns |  0.2113 ns |  0.1764 ns |      - |       0 B |
                     Matcher_No_Storage_Pattern_Uppercase | 268.71 ns |  0.3062 ns |  0.2864 ns | 0.1116 |     352 B |
                        Matcher_Storage_Pattern_Uppercase |  71.82 ns |  0.1074 ns |  0.1004 ns | 0.0304 |      96 B |
-```
-
-ReturnYieldVsReturnList
-```
-                     Method | NumberOfItems |        Mean |       Error |      StdDev | Gen 0/1k Op | Allocated Memory/Op |
---------------------------- |-------------- |------------:|------------:|------------:|------------:|--------------------:|
-                Return_List |             1 |    63.73 ns |   1.1566 ns |   1.0253 ns |      0.0508 |                80 B |
- Return_List_Known_Capacity |             1 |    47.68 ns |   0.6970 ns |   0.5820 ns |      0.0457 |                72 B |
-                      Yield |             1 |    35.02 ns |   0.7198 ns |   1.0323 ns |      0.0254 |                40 B |
-                Return_List |            10 |   221.10 ns |   2.5827 ns |   2.4159 ns |      0.1423 |               224 B |
- Return_List_Known_Capacity |            10 |   107.01 ns |   4.9694 ns |   5.5235 ns |      0.0660 |               104 B |
-                      Yield |            10 |   112.52 ns |   1.4678 ns |   1.3011 ns |      0.0254 |                40 B |
-                Return_List |           100 |  1,133.5 ns |    22.39 ns |    39.22 ns |      0.7572 |              1192 B |
- Return_List_Known_Capacity |           100 |    746.3 ns |    17.00 ns |    15.90 ns |      0.2937 |               464 B |
-                      Yield |           100 |    906.5 ns |    11.68 ns |    10.36 ns |      0.0248 |                40 B |
-                Return_List |          1000 | 8,251.92 ns | 136.2985 ns | 120.8250 ns |      5.3406 |              8432 B |
- Return_List_Known_Capacity |          1000 | 7,019.67 ns | 167.6531 ns | 193.0696 ns |      2.5711 |              4064 B |
-                      Yield |          1000 | 8,709.88 ns | 172.8103 ns | 177.4635 ns |      0.0153 |                40 B |
 ```
