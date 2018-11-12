@@ -8,6 +8,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using BenchmarkDotNet.Analysers;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Loggers;
@@ -25,8 +26,10 @@ namespace GoodPractices.Benchmark
     {
       var config = ManualConfig.CreateEmpty()
         .With(JitOptimizationsValidator.DontFailOnError)
+        .With(ConsoleLogger.Default)
         .With(MemoryDiagnoser.Default)
-        .With(ConsoleLogger.Default);
+        .With(EnvironmentAnalyser.Default)
+        .With(BenchmarkDotNet.Columns.DefaultColumnProviders.Instance);
       
       var menu = new ConsoleMenu();
 
@@ -38,6 +41,8 @@ namespace GoodPractices.Benchmark
       {
         menu.Add(type.Name, () => RunBenchmark(type, config));          
       }
+
+      menu.Add("Exit", ConsoleMenu.Close);
 
       menu.Configure(menuConfig => 
         {

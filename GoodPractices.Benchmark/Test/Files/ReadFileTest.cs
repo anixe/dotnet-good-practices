@@ -2,42 +2,11 @@ using System;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using BenchmarkDotNet.Attributes;
-using GoodPractices.Benchmark.Lib.ReadFile;
 
 namespace GoodPractices.Benchmark.Test.Files
 {
   public class ReadFileTest
   {
-    [GlobalSetup]
-    public void Setup()
-    {
-    }
-
-
-    [GlobalCleanup]
-    public void Cleanup()
-    {
-    }
-
-    // [Benchmark]
-    // public int Use_Only_Stream()
-    // {
-    //   int retval = 0;
-    //   using (var reader = File.OpenRead(FileLoader.GetStationsIonPath()))
-    //   {
-    //     if (!reader.CanRead)
-    //     {
-    //       var line = reader.ReadLine();
-    //       if (line.Contains('x'))
-    //       {
-    //         retval++;
-    //       }
-    //     }
-    //   }
-    //   return retval;
-    // }
-
-
     [Benchmark]
     public int Use_Only_StreamReader()
     {
@@ -81,7 +50,7 @@ namespace GoodPractices.Benchmark.Test.Files
     {
       int retval = 0;
       using (var stream = File.OpenRead(FileLoader.GetStationsIonPath()))
-      using (var reader = new FastReader(stream, true))
+      using (var reader = new Anixe.IO.FastStreamReader(stream))
       {
         while (reader.Read())
         {
