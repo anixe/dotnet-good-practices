@@ -37,5 +37,12 @@ project
 
 ### How to run
 ```
+cd GoodPractices.Benchmark
+dotnet run -c Release
+```
+
+Http tests require Wiremock.Console running and listening on 8080 port
+```
+cd Wiremock.Console
 dotnet run -c Release
 ```
