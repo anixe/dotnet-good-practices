@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Sockets;
 using System.Reflection;
-using System.Text;
-using System.Threading;
 using BenchmarkDotNet.Analysers;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
@@ -15,8 +8,6 @@ using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Validators;
 using ConsoleTools;
-using GoodPractices.Benchmark.Lib.Http;
-using GoodPractices.Benchmark.Test.Collections;
 
 namespace GoodPractices.Benchmark
 {
@@ -30,21 +21,21 @@ namespace GoodPractices.Benchmark
         .With(MemoryDiagnoser.Default)
         .With(EnvironmentAnalyser.Default)
         .With(BenchmarkDotNet.Columns.DefaultColumnProviders.Instance);
-      
+
       var menu = new ConsoleMenu();
 
       var testTypes = CollectTypes();
 
       menu.Add("All", () => RunBenchmark(testTypes, config));
 
-      foreach (var type in testTypes)
+      foreach (var type in testTypes.OrderBy(t => t.FullName))
       {
-        menu.Add(type.Name, () => RunBenchmark(type, config));          
+        menu.Add(TestName(type), () => RunBenchmark(type, config));
       }
 
       menu.Add("Exit", ConsoleMenu.Close);
 
-      menu.Configure(menuConfig => 
+      menu.Configure(menuConfig =>
         {
           menuConfig.ItemForegroundColor = ConsoleColor.White;
           menuConfig.SelectedItemForegroundColor = ConsoleColor.Green;
@@ -53,6 +44,11 @@ namespace GoodPractices.Benchmark
       );
 
       menu.Show();
+    }
+
+    private static string TestName(Type type)
+    {
+      return string.Join(".", type.FullName.Split(".").TakeLast(2));
     }
 
     private static void RunBenchmark(Type type, IConfig config)
@@ -66,7 +62,7 @@ namespace GoodPractices.Benchmark
     {
       foreach (var type in types)
       {
-        BenchmarkRunner.Run(type, config);          
+        BenchmarkRunner.Run(type, config);
       }
     }
 
