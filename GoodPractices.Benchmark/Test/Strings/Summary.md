@@ -1,5 +1,5 @@
-### StringConcatTest 
-string concatenation benchmarks  
+### StringConcatTest
+string concatenation benchmarks
 ```
                                   Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
 ---------------------------------------- |----------:|----------:|----------:|-------:|----------:|
@@ -14,7 +14,7 @@ string concatenation benchmarks
 ---
 
 ### StringBuilderAppendTest
-string producing using StringBuilder. General tip is - if you can compute size of the final string upfront (it's just a sum of Length of every string that is a part of the result) it's best to initialize StringBuilder with the size.  
+string producing using StringBuilder. General tip is - if you can compute size of the final string upfront (it's just a sum of Length of every string that is a part of the result) it's best to initialize StringBuilder with the size.
 ```
                                                 Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
 ------------------------------------------------------ |----------:|----------:|----------:|-------:|----------:|
@@ -33,7 +33,7 @@ string producing using StringBuilder. General tip is - if you can compute size o
 ---
 
 ### PooledStringBuilderAppendTest
-similar to StringBuilderAppendTest but this time StringBuilder instances are taken from the resuable pool. Crucial in this approach is to not forget to *RETURN* instance of StringBuilder back to pool. 
+similar to StringBuilderAppendTest but this time StringBuilder instances are taken from the resuable pool. Crucial in this approach is to not forget to *RETURN* instance of StringBuilder back to pool.
 ```
 
                                Method |      Mean |     Error |    StdDev |  Gen 0 | Allocated |
@@ -74,11 +74,11 @@ ArrayPool<char>.Shared.Return(this.target);
                      Append_6_Objects | 286.08 ns | 0.8034 ns | 0.7515 ns |      - |       0 B |
  Append_6_Objects_Converted_To_String | 278.37 ns | 1.9551 ns | 1.6326 ns | 0.0110 |      72 B |
 ```
- 
+
 ---
 
 ### RegexVsStringMatchingTest
-Comparison of different ways of telling whether string mathes our pattern. 
+Comparison of different ways of telling whether string mathes our pattern.
 ```
                                                    Method |      Mean |      Error |     StdDev |  Gen 0 | Allocated |
 -------------------------------------------------------- |----------:|-----------:|-----------:|-------:|----------:|
@@ -106,4 +106,18 @@ Comparison of different ways of telling whether string mathes our pattern.
                          CompiledRegex_Pattern_Uppercase | 321.03 ns |  0.2113 ns |  0.1764 ns |      - |       0 B |
                     Matcher_No_Storage_Pattern_Uppercase | 268.71 ns |  0.3062 ns |  0.2864 ns | 0.1116 |     352 B |
                        Matcher_Storage_Pattern_Uppercase |  71.82 ns |  0.1074 ns |  0.1004 ns | 0.0304 |      96 B |
+```
+
+---
+
+### StackallocVsStringBuilderVsDateFormat
+Stackalloc is optimal in terms of speed (CPU) and memory.
+Equally perfomant in terms of memory is pooled StringBuilder which, way more friendly to use - the only drawback is that developer needs to manage the state (return builder to pool) and often it might require refactoring in order to provide pooled builder to formatter.
+```
+                 Method |      Mean |      Error |     StdDev |    Median | Gen 0/1k Op | Gen 1/1k Op | Gen 2/1k Op | Allocated Memory/Op |
+----------------------- |----------:|-----------:|-----------:|----------:|------------:|------------:|------------:|--------------------:|
+             DateFormat | 310.82 ns |  2.3078 ns |  2.0458 ns | 310.68 ns |      0.0262 |           - |           - |               168 B |
+    PooledStringBuilder | 256.63 ns |  0.8953 ns |  0.7936 ns | 256.71 ns |      0.0100 |           - |           - |                64 B |
+ NonPooledStringBuilder | 343.66 ns | 13.2666 ns | 38.9087 ns | 331.74 ns |      0.0429 |           - |           - |               272 B |
+             Stackalloc |  90.09 ns |  0.7251 ns |  0.6428 ns |  89.93 ns |      0.0101 |           - |           - |                64 B |
 ```
