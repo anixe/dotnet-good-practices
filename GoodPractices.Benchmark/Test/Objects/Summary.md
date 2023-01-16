@@ -9,3 +9,10 @@
 |          Clone_UsingSystemTextJsonSerialization_WithByteArray |  79.72 us | 0.414 us | 0.346 us |  5.9814 |     - |     - |  12.28 KB |
 |       Clone_UsingSystemTextJsonSerialization_WithMemoryStream |  85.92 us | 0.492 us | 0.411 us |  8.5449 |     - |     - |   17.5 KB |
 | Clone_UsingSystemTextJsonSerialization_WithMemoryStream_Async |  84.79 us | 0.915 us | 0.714 us |  4.3945 |     - |     - |   9.36 KB |
+
+# IsNumericTypeTests
+
+|                          Method |     Mean |    Error |   StdDev |  Gen 0 | Gen 1 | Gen 2 | Allocated |
+|-------------------------------- |---------:|---------:|---------:|-------:|------:|------:|----------:|
+|  IsNumericType_UsingGetTypeCode | 19.95 ns | 0.365 ns | 0.341 ns | 0.0057 |     - |     - |      24 B |
+| IsNumericType_UsingTypeMatching | 17.43 ns | 0.123 ns | 0.096 ns | 0.0057 |     - |     - |      24 B |
